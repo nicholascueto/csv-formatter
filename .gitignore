@@ -130,3 +130,5 @@ dmypy.json
 .csv
 CheckingExport.csv
 *.csv
+CSVformatter/
+.DS_Store
