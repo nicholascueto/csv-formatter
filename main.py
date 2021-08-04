@@ -1,8 +1,8 @@
-import os, sys, csv
+import os, sys, csv, re
 import lookupTables as lut
 from fuzzywuzzy import fuzz
 
-def searchAndReplace(line, table, oneLine=True, lineIndex=3, matchTolerance=85):
+def searchAndReplace(line, table, oneLine=True, lineIndex=3, matchTolerance=85, useSearchtermAsOutput=True):
     '''
     Input list from csv and search through it using all search terms from 'lookupTables.py'.
 
@@ -30,12 +30,28 @@ def searchAndReplace(line, table, oneLine=True, lineIndex=3, matchTolerance=85):
             # input(k)
             # input(v)
             searchTerm, replacement = k, v
-            matchStrength = fuzz.token_set_ratio(searchTerm, item)
+            # if searchterm has pipe, use alternate method
+            if "|" in searchTerm:
+                # seperate each term
+                spliterms = searchTerm.split('|')
+                for term in spliterms:
+                    # and search through them
+                    matchStrength = fuzz.token_set_ratio(term, item)
 
-            if matchStrength > matchTolerance:
-                print(f'Matched {searchTerm} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}')
-                # End search and return replacement
-                return replacement
+                    if matchStrength > matchTolerance:
+                        # Use the matched searchterm as the new name
+                        replacement[0] = term if useSearchtermAsOutput else replacement[0]
+                        print(f'Matched {term} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}')
+                        # End search and return replacement
+                        return replacement
+
+            else:
+                matchStrength = fuzz.token_set_ratio(searchTerm, item)
+
+                if matchStrength > matchTolerance:
+                    print(f'Matched {searchTerm} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}')
+                    # End search and return replacement
+                    return replacement
 
         # break after one search
         if oneLine:
@@ -58,6 +74,12 @@ for i, line in enumerate(lines):
     result = searchAndReplace(splitLine, lut.payees)
     if result:
         splitLine.extend(result)
+        # Check if formatted ca:subcat
+        if ":" in result[1]:
+            cat, subcat = result[1].split(':')
+            # print(f"formatted as x:y. Split {cat} and {subcat}.")
+            result[1] = cat
+            result[2] = subcat
         # Add updated line to new file
         with open("./FormattedExport.csv", "a") as f:
             write = csv.writer(f)
