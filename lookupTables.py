@@ -2,5 +2,5 @@
 # Match Name and convert for database
 
 payees = {
-"SPROUTS FARMERS MKT|sprouts" : ["Sprouts Farmer's Market", "Groceries", ""],
+"SPROUTS FARMERS MKT" : ["Sprouts Farmer's Market", "Groceries", ""],
 }
