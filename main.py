@@ -76,6 +76,14 @@ for i, line in enumerate(lines):
     splitLine.pop(-1)
     # print(splitLine)
 
+    # convert date to 0d/0d/YYYY
+    date = splitLine[1]
+    d, m, y = date.split('/')
+    d = '0' + d if len(d) < 2 else d
+    m = '0' + m if len(m) < 2 else m
+    convertedDate = "/".join((d, m, y))
+    splitLine[1] = convertedDate
+
     # Search through third item in list.
     result = searchAndReplace(splitLine, lut.payees)
 
