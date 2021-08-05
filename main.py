@@ -37,19 +37,21 @@ def searchAndReplace(line, table, oneLine=True, lineIndex=3, matchTolerance=85, 
                 for term in spliterms:
                     # and search through them
                     matchStrength = fuzz.token_set_ratio(term, item)
+                    print(f'Possible match: {term} and {item} with a match confidence of {matchStrength}.    Replacement Candidate = {replacement}') if 80 < matchStrength < matchTolerance else None
 
                     if matchStrength > matchTolerance:
                         # Use the matched searchterm as the new name
-                        replacement[0] = term if useSearchtermAsOutput else replacement[0]
-                        print(f'Matched {term} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}')
+                        replacement[0] = term if useSearchtermAsOutput and "!*norename*!" not in searchTerm else replacement[0]
+                        # print(f'Matched {term} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}') if matchStrength < 99 else None
                         # End search and return replacement
                         return replacement
 
             else:
                 matchStrength = fuzz.token_set_ratio(searchTerm, item)
+                print(f'Possible match: {searchTerm} and {item} with a match confidence of {matchStrength}.    Replacement Candidate = {replacement}') if 80 < matchStrength < matchTolerance else None
 
                 if matchStrength > matchTolerance:
-                    print(f'Matched {searchTerm} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}')
+                    # print(f'Matched {searchTerm} and {item} with a match confidence of {matchStrength}.    Replacing with {replacement}') if matchStrength < 99 else None
                     # End search and return replacement
                     return replacement
 
@@ -64,6 +66,10 @@ def searchAndReplace(line, table, oneLine=True, lineIndex=3, matchTolerance=85, 
 with open ("Export.csv", "r") as f:
     lines = f.readlines()
 
+matched = 0
+unmatched = 0
+unmatchedItems = []
+
 for i, line in enumerate(lines):
     splitLine = line.split(',')
     # remove last line
@@ -72,6 +78,7 @@ for i, line in enumerate(lines):
 
     # Search through third item in list.
     result = searchAndReplace(splitLine, lut.payees)
+
     if result:
         splitLine.extend(result)
         # Check if formatted ca:subcat
@@ -84,15 +91,28 @@ for i, line in enumerate(lines):
         with open("./FormattedExport.csv", "a") as f:
             write = csv.writer(f)
             write.writerow(splitLine)
+
+        matched += 1
         continue
 
     # If nothing is found, add the current line and format it
     else:
         extraLines = ['','','',]
         splitLine.extend(extraLines)
+        # Add updated line to new file
+        with open("./FormattedExport.csv", "a") as f:
+            write = csv.writer(f)
+            write.writerow(splitLine)
 
+        unmatched += 1
+        unmatchedItems.append(splitLine[3])
+        # print(splitLine[3])
+        continue
 
-    # if i == 30:
-    #     break
+print(f"{matched} matches.")
+print(f"{unmatched} not matched.")
+
+# setOfItems = set(unmatchedItems)
+# (print(i) for i in unmatchedItems)
 
 
